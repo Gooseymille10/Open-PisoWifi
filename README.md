@@ -1,31 +1,41 @@
-<div align="center">
+# 📶 OpenPisoWifi
 
-<img src="https://raw.githubusercontent.com/Gooseymille10/OpenPisoWifi/main/assets/logo.svg" alt="OpenPisoWifi Logo" width="80"/>
-
-# OpenPisoWifi
-
-**Open source Piso WiFi captive portal — no ₱10,000 black box required.**
+> An open source captive portal for Piso WiFi — no ₱10,000 black box required.
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/Python-3.x-blue?logo=python)](https://python.org)
-[![Platform](https://img.shields.io/badge/Platform-Raspberry%20Pi%20%7C%20Orange%20Pi-red)](https://www.raspberrypi.com)
-[![GitHub](https://img.shields.io/badge/Built%20by-Gooseymille-black?logo=github)](https://github.com/Gooseymille10)
-
-</div>
+[![Python](https://img.shields.io/badge/Python-3.x-blue.svg)](https://python.org)
+[![Platform](https://img.shields.io/badge/Platform-Raspberry%20Pi%20%7C%20Orange%20Pi-red.svg)](https://www.raspberrypi.com)
+[![Built by](https://img.shields.io/badge/Built%20by-Gooseymille-black.svg)](https://github.com/Gooseymille10)
 
 ---
 
-## What is this?
+## 📖 Table of Contents
 
-Proprietary Piso WiFi vendo machines cost **₱10,000+** — a cheap SBC, a ₱300 coin acceptor, locked firmware, and a ₱2,000 software license slapped together in a plastic box.
+- [About](#about)
+- [How It Works](#how-it-works)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [File Structure](#file-structure)
+- [Admin Panel](#admin-panel)
+- [Useful Commands](#useful-commands)
+- [Troubleshooting](#troubleshooting)
+- [Contributing](#contributing)
+- [License](#license)
+
+---
+
+## About
+
+Proprietary Piso WiFi vendo machines cost **₱10,000+** — a cheap SBC, a ₱300 coin acceptor from Shopee, locked firmware, and a ₱2,000 software license slapped together in a plastic box that you don't own.
 
 **OpenPisoWifi** does the same thing for free, on hardware you probably already have.
 
-- **Admin approves devices** from a mobile-friendly web panel
+- Admin manually approves devices from a **mobile-friendly web panel**
 - **Captive portal** auto-pops on client devices (iOS, Android, Windows, Linux)
-- **1-hour sessions** tracked per MAC address via iptables
-- **Brownout recovery** — auto-restarts after power loss
-- **No coin slot needed** — owner manually grants access after payment
+- **Per-MAC session tracking** via iptables — 1 hour per approval
+- **Brownout recovery** — auto-restarts after power loss, no manual intervention
+- **No coin slot needed** — owner grants access after receiving payment
 
 ---
 
@@ -35,26 +45,28 @@ Proprietary Piso WiFi vendo machines cost **₱10,000+** — a cheap SBC, a ₱3
 [Internet / ISP]
        ↓
    [Router]
-       ↓ WiFi (wlan0) — Pi receives internet here
+       ↓ wlan0 — Pi receives internet here
    [Raspberry Pi / Orange Pi]  ← runs OpenPisoWifi
-       ↓ Ethernet (eth0) — clients connect here
-   [Access Point / Switch]
+       ↓ eth0 — wired to AP
+   [Access Point]
        ↓ WiFi
    [Client Devices]
 ```
 
-1. Client connects to WiFi → gets IP from Pi's DHCP
-2. All DNS resolves to portal IP → captive portal popup appears
+1. Client connects to WiFi → gets IP from Pi's dnsmasq
+2. All DNS resolves to portal IP → captive portal popup appears automatically
 3. Client sees **"Pay to Owner"** page — no browsing yet
-4. Owner opens `/admin` on their phone → sees the device → clicks **Grant 1 Hour**
-5. iptables ACCEPT rule added for that MAC → client browses freely
-6. After 1 hour, access is automatically revoked
+4. Owner opens `/admin` on their phone → clicks **Grant 1 Hour**
+5. iptables ACCEPT + RETURN exemption rules added for that MAC
+6. Client browses freely — HTTP, HTTPS, QUIC all work
+7. After 1 hour, access is automatically revoked
 
 ---
 
 ## Requirements
 
 ### Hardware
+
 | Component | Example | Est. Cost |
 |-----------|---------|-----------|
 | SBC | Raspberry Pi 3/4/5, Orange Pi | ₱1,500–3,000 |
@@ -63,22 +75,21 @@ Proprietary Piso WiFi vendo machines cost **₱10,000+** — a cheap SBC, a ₱3
 | Ethernet cable | Cat5e/6 | ₱50–100 |
 | Power supply | 5V/3A USB-C | ₱200–400 |
 
-**Total: ~₱2,400–5,800** vs ₱10,000+ for a proprietary vendo 😄
+**Total: ~₱2,400–5,800** vs ₱10,000+ for a proprietary vendo.
 
 ### Software
+
 - Raspberry Pi OS / Armbian (Debian-based)
 - Python 3.x
-- Flask (installed by setup script)
-- dnsmasq, iptables (installed by setup script)
+- Flask, dnsmasq, iptables *(installed automatically by setup script)*
 
 ---
 
-## Quick Start
+## Installation
 
 ### 1. Clone the repo
 ```bash
 git clone https://github.com/Gooseymille10/OpenPisoWifi.git
-cd OpenPisoWifi
 ```
 
 ### 2. Copy to your Pi
@@ -86,62 +97,56 @@ cd OpenPisoWifi
 scp -r OpenPisoWifi/ pi@<your-pi-ip>:/opt/pisowifi
 ```
 
-### 3. Edit setup.sh
+### 3. Edit configuration
 ```bash
 sudo nano /opt/pisowifi/setup.sh
 ```
 
-Set these variables to match your setup:
+Set these variables:
 ```bash
-WIFI_IFACE="wlan0"          # interface receiving internet (check with: ip link)
-LAN_IFACE="eth0"            # interface facing AP/clients
-PORTAL_IP="192.168.100.2"   # Pi's IP — must NOT be same as your router
+WIFI_IFACE="wlan0"          # interface receiving internet (check: ip link)
+LAN_IFACE="eth0"            # interface connected to your AP
+PORTAL_IP="192.168.100.2"   # Pi's static IP — must differ from router IP
 ROUTER_IP="192.168.100.1"   # your home router's IP
 ```
 
-### 4. Change the admin password
-In `app.py`:
-```python
-ADMIN_PASS = hashlib.sha256("admin123".encode()).hexdigest()
-# Change "admin123" to your own password ↑
-```
-
-### 5. Run setup (once, as root)
+### 4. Run setup (once, as root)
 ```bash
 cd /opt/pisowifi
 chmod +x setup.sh start.sh
 sudo bash setup.sh
 ```
 
-Setup will automatically:
-- Install dependencies (Flask, dnsmasq, iptables-persistent)
-- Configure eth0 as static IP
-- Set up iptables rules (NAT, captive portal redirect, QUIC blocking)
-- Configure dnsmasq (DHCP + DNS redirect)
-- Install and enable systemd service
-- Save all rules so they survive reboots and brownouts
-
-### 6. Reboot and test
+### 5. Reboot
 ```bash
 sudo reboot
 ```
 
-After ~30 seconds, connect a device to your AP — the captive portal should appear automatically.
+Connect a device to your AP — the captive portal will appear automatically within a few seconds.
 
 ---
 
-## Admin Panel
+## Configuration
 
-Access at `http://<PORTAL_IP>/admin`
+### Change the admin password
+In `app.py`:
+```python
+ADMIN_PASS = hashlib.sha256("admin123".encode()).hexdigest()
+#                            ↑ change this
+```
 
-| Feature | Description |
-|---------|-------------|
-| **Waiting for Approval** | Devices connected but not yet paid |
-| **Active Sessions** | Approved devices with live countdown timers |
-| **Grant 1 Hour** | Approve a device — starts their 1-hour session |
-| **Revoke Access** | Immediately kick a device off |
+### Change session duration
+In `app.py`:
+```python
+SESSION_HOURS = 1   # change to however many hours you want
+```
 
-The admin panel is **mobile-optimized** — use it from your phone while sitting at the counter.
+### Change session price display
+In `templates/portal.html`:
+```html
+<div class="pay-price">₱5.00</div>
+<div class="pay-duration">per hour of internet access</div>
+```
 
 ---
 
@@ -149,15 +154,34 @@ The admin panel is **mobile-optimized** — use it from your phone while sitting
 
 ```
 OpenPisoWifi/
-├── app.py              # Main Flask app (captive portal + admin)
-├── setup.sh            # One-time setup script
-├── start.sh            # Startup script (called by systemd on boot)
-├── pisowifi.service    # Systemd service file
+├── app.py                      # Main Flask app — portal logic, admin routes, iptables
+├── setup.sh                    # One-time setup script
+├── start.sh                    # Boot startup script (called by systemd)
+├── pisowifi.service            # Systemd service file
+├── LICENSE
+├── README.md
 └── templates/
-    ├── portal.html         # Client-facing portal page
-    ├── admin_login.html    # Admin login page
-    └── admin_dashboard.html # Admin dashboard
+    ├── portal.html             # Client-facing captive portal page
+    ├── admin_login.html        # Admin login page
+    └── admin_dashboard.html    # Admin dashboard — approve/revoke devices
 ```
+
+---
+
+## Admin Panel
+
+Access at `http://<PORTAL_IP>/admin`
+
+Default credentials: `admin` / `admin123` *(change this before going live)*
+
+| Feature | Description |
+|---------|-------------|
+| **Waiting for Approval** | Devices connected but not yet paid |
+| **Active Sessions** | Approved devices with live countdown timers |
+| **Grant 1 Hour** | Approve a device — starts their session |
+| **Revoke Access** | Immediately remove a device's internet access |
+
+The admin panel is mobile-optimized — use it from your phone at the counter.
 
 ---
 
@@ -177,12 +201,12 @@ sudo journalctl -u pisowifi -f
 sudo iptables -L FORWARD -v --line-numbers
 sudo iptables -t nat -L PREROUTING -v --line-numbers
 
-# View DHCP leases (connected clients)
+# View connected clients and their IPs
 cat /var/lib/misc/dnsmasq.leases
 
-# Reset everything back to stock
+# Full reset (wipes all rules back to stock)
 sudo systemctl stop pisowifi
-sudo iptables -F && sudo iptables -t nat -F
+sudo iptables -F && sudo iptables -t nat -F && sudo iptables -t mangle -F
 sudo iptables -P FORWARD ACCEPT && sudo iptables -P INPUT ACCEPT
 ```
 
@@ -191,66 +215,60 @@ sudo iptables -P FORWARD ACCEPT && sudo iptables -P INPUT ACCEPT
 ## Troubleshooting
 
 **Captive portal doesn't pop up automatically**
-- Make sure your AP is in bridge/AP mode (not router mode) so traffic flows through the Pi
+- Make sure AP is in bridge/AP mode — not router mode
 - Disable the AP's own DHCP server — only Pi's dnsmasq should hand out IPs
-- Check clients are getting IPs in the Pi's subnet: `cat /var/lib/misc/dnsmasq.leases`
+- Verify clients are getting IPs from Pi: `cat /var/lib/misc/dnsmasq.leases`
 
-**Internet works before granting access**
-- AP might still be in router mode and routing around the Pi
-- Check client gateway: should be Pi's IP, not router's IP
+**Client bypasses portal and gets internet without paying**
+- AP is still in router mode and routing around the Pi
+- Check: client gateway should be Pi's IP, not router's IP
 
-**Slow internet after granting access**
-- Already handled by MTU clamping in setup.sh
-- If still slow, check: `sudo iptables -t mangle -L FORWARD -v`
-
-**Portal breaks after reboot/brownout**
-- Re-run `sudo bash setup.sh` to re-apply all rules
-- Check service: `sudo systemctl status pisowifi`
+**Internet stops working after granting access**
+- Check iptables RETURN rules exist for client MAC: `sudo iptables -t nat -L PREROUTING -v`
+- Restart service: `sudo systemctl restart pisowifi`
 
 **Pi loses internet when setup.sh runs**
-- This is fixed in the latest version — dnsmasq is stopped before installing and only started after config is written
+- Fixed in current version — dnsmasq is stopped before install, config is written before it starts
+- Make sure `bind-interfaces` is in `/etc/dnsmasq.d/pisowifi.conf`
+
+**Everything breaks after reboot/brownout**
+- `start.sh` handles this — it waits for wlan0, re-applies eth0 static IP, and ensures IP forwarding is on before Flask starts
+- Check service logs: `journalctl -u pisowifi -f`
 
 **eth0 grabbing wrong IP from router**
-- Fixed by `denyinterfaces eth0` in dhcpcd.conf
-- Check: `ip addr show eth0` — should only show `PORTAL_IP`
-
----
-
-## Why Open Source?
-
-Proprietary Piso WiFi vendors charge:
-- ₱2,000+ for a software license
-- ₱10,000–20,000 for a "complete unit"
-- Sometimes a **cut of your earnings** through their ecosystem
-
-All for what is essentially Flask + iptables + dnsmasq on a cheap SBC.
-
-OpenPisoWifi gives small business owners — sari-sari stores, waiting sheds, carenderias — the same capability for free. You own your hardware, your software, and your earnings. 🇵🇭
+- `denyinterfaces eth0` in `/etc/dhcpcd.conf` prevents this
+- Verify: `ip addr show eth0` — should only show `PORTAL_IP`
 
 ---
 
 ## Contributing
 
 PRs welcome! Some ideas for future features:
+
 - [ ] Coin slot GPIO integration (for hardware vendo builds)
 - [ ] Bandwidth limiting per session
-- [ ] Session history / earnings tracker
+- [ ] Session history and earnings tracker
 - [ ] Multiple price tiers (₱5 = 1hr, ₱10 = 3hr, etc.)
-- [ ] SMS notification when client connects
-- [ ] Web-based config editor (no more nano)
+- [ ] Web-based config editor
+
+To contribute:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/your-feature`)
+3. Commit your changes (`git commit -m 'Add your feature'`)
+4. Push to the branch (`git push origin feature/your-feature`)
+5. Open a Pull Request
 
 ---
 
 ## License
 
-GNU General Public License v3.0 — free to use, modify, and distribute, but derivatives must also be open source under the same license.
+This project is licensed under the **GNU General Public License v3.0**.
+
+See [LICENSE](LICENSE) for the full license text.
+
+> Derivatives must also be open source under the same license — so no one can take this, lock it down, and sell it as a ₱10,000 black box. 😄
 
 ---
 
-<div align="center">
-
-Built by [Gooseymille](https://github.com/Gooseymille10) · [YouTube](https://www.youtube.com/@GooseymilleonYT/featured)
-
-*"Why pay ₱10,000 for a black box when it's just couple lines of code?"*
-
-</div>
+Made with 💜 by [Gooseymille](https://github.com/Gooseymille10) · [YouTube](https://www.youtube.com/@GooseymilleonYT/featured)
