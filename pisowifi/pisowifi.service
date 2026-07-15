@@ -1,0 +1,14 @@
+[Unit]
+Description=Piso WiFi Captive Portal
+After=network.target dnsmasq.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/pisowifi
+ExecStart=/usr/bin/python3 /opt/pisowifi/app.py
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

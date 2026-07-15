@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Piso WiFi – Pay to Connect</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #0a0f1e 0%, #0f2744 60%, #0a1628 100%);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      color: #f1f5f9;
+      padding: 1rem;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      backdrop-filter: blur(16px);
+      border-radius: 1.75rem;
+      padding: 2.5rem 2rem;
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 8px 48px rgba(0,0,0,0.5);
+    }
+
+    .hero-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 72px;
+      height: 72px;
+      background: rgba(56,189,248,0.12);
+      border: 1px solid rgba(56,189,248,0.25);
+      border-radius: 1.25rem;
+      margin: 0 auto 1.25rem;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      margin-bottom: 0.3rem;
+      color: #f1f5f9;
+    }
+
+    .subtitle {
+      font-size: 0.9rem;
+      color: #64748b;
+      margin-bottom: 1.75rem;
+    }
+
+    .info-box {
+      background: rgba(56,189,248,0.06);
+      border: 1px solid rgba(56,189,248,0.15);
+      border-radius: 1rem;
+      padding: 1rem 1.2rem;
+      margin-bottom: 1.25rem;
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .info-row {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .info-row svg { flex-shrink: 0; opacity: 0.5; }
+
+    .info-row .info-label {
+      font-size: 0.75rem;
+      color: #64748b;
+      display: block;
+    }
+
+    .info-row .info-value {
+      font-size: 0.88rem;
+      color: #e2e8f0;
+      font-weight: 600;
+      font-family: monospace;
+    }
+
+    .pay-box {
+      background: rgba(16,185,129,0.08);
+      border: 1px solid rgba(16,185,129,0.2);
+      border-radius: 1rem;
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      text-align: left;
+    }
+
+    .pay-icon {
+      width: 48px;
+      height: 48px;
+      background: rgba(16,185,129,0.15);
+      border-radius: 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .pay-label {
+      font-size: 0.75rem;
+      color: #6ee7b7;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 0.2rem;
+    }
+
+    .pay-price {
+      font-size: 2rem;
+      font-weight: 800;
+      color: #10b981;
+      line-height: 1;
+    }
+
+    .pay-duration {
+      font-size: 0.78rem;
+      color: #64748b;
+      margin-top: 0.2rem;
+    }
+
+    .steps {
+      text-align: left;
+      margin-bottom: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .step {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+
+    .step-icon {
+      width: 32px;
+      height: 32px;
+      background: rgba(56,189,248,0.1);
+      border: 1px solid rgba(56,189,248,0.2);
+      border-radius: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .step p {
+      font-size: 0.875rem;
+      color: #94a3b8;
+      line-height: 1.5;
+      padding-top: 0.35rem;
+    }
+
+    .step p b { color: #e2e8f0; }
+
+    .refresh-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      width: 100%;
+      background: #38bdf8;
+      color: #0a0f1e;
+      font-weight: 700;
+      font-size: 0.95rem;
+      border: none;
+      border-radius: 0.875rem;
+      padding: 0.85rem;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      text-decoration: none;
+    }
+    .refresh-btn:active { transform: scale(0.98); }
+    .refresh-btn:hover { background: #7dd3fc; }
+
+    .footer {
+      margin-top: 1rem;
+      font-size: 0.75rem;
+      color: #334155;
+    }
+
+    .promo {
+      margin-top: 1.25rem;
+      font-size: 0.75rem;
+      color: #475569;
+    }
+    .promo a {
+      color: #38bdf8;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .promo a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="card">
+
+    <!-- Hero icon -->
+    <div class="hero-icon">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M5 12.55a11 11 0 0 1 14.08 0"/>
+        <path d="M1.42 9a16 16 0 0 1 21.16 0"/>
+        <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+        <circle cx="12" cy="20" r="1" fill="#38bdf8" stroke="none"/>
+      </svg>
+    </div>
+
+    <h1>Piso WiFi</h1>
+    <p class="subtitle">Internet access requires payment</p>
+
+    <!-- Device info -->
+    <div class="info-box">
+      <div class="info-row">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+        </svg>
+        <div>
+          <span class="info-label">Device IP</span>
+          <span class="info-value">{{ ip }}</span>
+        </div>
+      </div>
+      {% if mac %}
+      <div class="info-row">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/>
+        </svg>
+        <div>
+          <span class="info-label">MAC Address</span>
+          <span class="info-value">{{ mac }}</span>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Price -->
+    <div class="pay-box">
+      <div class="pay-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+        </svg>
+      </div>
+      <div>
+        <div class="pay-label">Session Rate</div>
+        <div class="pay-price">₱5.00</div>
+        <div class="pay-duration">per hour of internet access</div>
+      </div>
+    </div>
+
+    <!-- Steps -->
+    <div class="steps">
+      <div class="step">
+        <div class="step-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+          </svg>
+        </div>
+        <p><b>Approach the owner</b> and pay ₱5 per hour of use.</p>
+      </div>
+      <div class="step">
+        <div class="step-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+        </div>
+        <p>The <b>owner will approve</b> your device from their admin panel.</p>
+      </div>
+      <div class="step">
+        <div class="step-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+          </svg>
+        </div>
+        <p>Click <b>Check Connection</b> below — you'll be connected!</p>
+      </div>
+    </div>
+
+    <!-- Button -->
+    <a class="refresh-btn" href="https://www.youtube.com/@GooseymilleonYT/featured" target="_blank">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+      </svg>
+      Check Connection
+    </a>
+
+    <div class="footer">Already paid? Wait a moment then click above.</div>
+
+    <div class="promo">
+      Powered by
+      <a href="https://github.com/Gooseymille10" target="_blank" rel="noopener">OpenPisoWifi</a>
+      · Built by Gooseymille
+    </div>
+
+  </div>
+</body>
+</html>

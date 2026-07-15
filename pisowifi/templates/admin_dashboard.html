@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin – Piso WiFi</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #0a0f1e;
+      --surface: #111827;
+      --border:  rgba(255,255,255,0.07);
+      --text:    #f1f5f9;
+      --muted:   #64748b;
+      --dim:     #334155;
+      --blue:    #38bdf8;
+      --green:   #10b981;
+      --amber:   #f59e0b;
+      --red:     #ef4444;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      padding-bottom: 3rem;
+    }
+
+    /* ── Nav ── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10,15,30,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.85rem 1rem;
+    }
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-weight: 800;
+      font-size: 0.95rem;
+      color: var(--blue);
+    }
+    .nav-brand .brand-icon {
+      width: 32px;
+      height: 32px;
+      background: rgba(56,189,248,0.12);
+      border: 1px solid rgba(56,189,248,0.2);
+      border-radius: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .logout-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.78rem;
+      color: var(--muted);
+      text-decoration: none;
+      padding: 0.4rem 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .logout-btn:hover { color: var(--text); border-color: rgba(255,255,255,0.18); }
+
+    /* ── Page ── */
+    .page { padding: 1rem; max-width: 700px; margin: 0 auto; }
+
+    /* ── Stats ── */
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      margin: 1rem 0 1.5rem;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .stat-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 0.65rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .stat-icon.amber { background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.2); }
+    .stat-icon.green { background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.2); }
+    .stat-label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+    .stat-value { font-size: 1.75rem; font-weight: 800; line-height: 1.1; }
+    .stat-value.amber { color: var(--amber); }
+    .stat-value.green { color: var(--green); }
+
+    /* ── Section head ── */
+    .section-head {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin: 1.5rem 0 0.75rem;
+    }
+    .section-head h2 {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      font-weight: 700;
+    }
+    .pill {
+      font-size: 0.68rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 1rem;
+      font-weight: 700;
+    }
+    .pill.amber { background: rgba(245,158,11,0.12); color: var(--amber); border: 1px solid rgba(245,158,11,0.2); }
+    .pill.green { background: rgba(16,185,129,0.12); color: var(--green); border: 1px solid rgba(16,185,129,0.2); }
+
+    /* ── Device cards ── */
+    .device-list { display: flex; flex-direction: column; gap: 0.6rem; }
+
+    .device-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: 1rem;
+      border-left-width: 3px;
+    }
+    .device-card.pending { border-left-color: var(--amber); }
+    .device-card.active  { border-left-color: var(--green); }
+
+    .device-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 0.5rem;
+      margin-bottom: 0.6rem;
+    }
+    .device-name {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text);
+      word-break: break-all;
+    }
+    .device-time {
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-top: 0.2rem;
+    }
+
+    .device-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem 0.75rem;
+      margin-bottom: 0.85rem;
+    }
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+    .meta-item span { color: #94a3b8; font-family: monospace; font-size: 0.78rem; }
+
+    .device-actions { display: flex; gap: 0.5rem; }
+    .btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      font-size: 0.83rem;
+      font-weight: 700;
+      padding: 0.65rem 0.75rem;
+      border: none;
+      border-radius: 0.65rem;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-grant { background: var(--green); color: #fff; }
+    .btn-grant:hover { opacity: 0.88; }
+    .btn-revoke {
+      background: rgba(239,68,68,0.1);
+      color: #f87171;
+      border: 1px solid rgba(239,68,68,0.2);
+    }
+    .btn-revoke:hover { background: rgba(239,68,68,0.18); }
+
+    /* ── Timer ── */
+    .timer {
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 0.25rem 0.6rem;
+      border-radius: 0.5rem;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .timer.ok   { background: rgba(16,185,129,0.12); color: var(--green); border: 1px solid rgba(16,185,129,0.2); }
+    .timer.warn { background: rgba(245,158,11,0.12); color: var(--amber); border: 1px solid rgba(245,158,11,0.2); }
+
+    /* ── Empty ── */
+    .empty {
+      background: var(--surface);
+      border: 1px dashed var(--border);
+      border-radius: 1rem;
+      padding: 2rem 1rem;
+      text-align: center;
+      color: var(--dim);
+      font-size: 0.85rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .refresh-hint { font-size: 0.72rem; color: var(--dim); text-align: right; margin-bottom: 0.75rem; }
+
+    /* ── Promo ── */
+    .promo {
+      margin-top: 2.5rem;
+      text-align: center;
+      font-size: 0.72rem;
+      color: var(--dim);
+    }
+    .promo a { color: var(--blue); text-decoration: none; font-weight: 600; }
+    .promo a:hover { text-decoration: underline; }
+  </style>
+
+  <script>
+    setTimeout(() => location.reload(), 15000);
+
+    function updateTimers() {
+      document.querySelectorAll('[data-expires]').forEach(el => {
+        const diff = Math.max(0, Math.floor((new Date(el.dataset.expires) - Date.now()) / 1000));
+        const h = Math.floor(diff / 3600);
+        const m = Math.floor((diff % 3600) / 60);
+        const s = diff % 60;
+        el.textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        el.className = 'timer ' + (diff < 300 ? 'warn' : 'ok');
+      });
+    }
+    updateTimers();
+    setInterval(updateTimers, 1000);
+  </script>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-brand">
+      <div class="brand-icon">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 12.55a11 11 0 0 1 14.08 0"/>
+          <path d="M1.42 9a16 16 0 0 1 21.16 0"/>
+          <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+          <circle cx="12" cy="20" r="1" fill="#38bdf8" stroke="none"/>
+        </svg>
+      </div>
+      Piso WiFi
+    </div>
+    <a class="logout-btn" href="/admin/logout">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+      </svg>
+      Logout
+    </a>
+  </nav>
+
+  <div class="page">
+
+    <!-- Stats -->
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-icon amber">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+        </div>
+        <div>
+          <div class="stat-label">Waiting</div>
+          <div class="stat-value amber">{{ pending|length }}</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12.55a11 11 0 0 1 14.08 0"/>
+            <path d="M1.42 9a16 16 0 0 1 21.16 0"/>
+            <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+            <circle cx="12" cy="20" r="1" fill="#10b981" stroke="none"/>
+          </svg>
+        </div>
+        <div>
+          <div class="stat-label">Online</div>
+          <div class="stat-value green">{{ active|length }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pending -->
+    <div class="section-head">
+      <h2>Waiting for Approval</h2>
+      <span class="pill amber">{{ pending|length }}</span>
+    </div>
+
+    {% if pending %}
+    <div class="device-list">
+      {% for d in pending %}
+      <div class="device-card pending">
+        <div class="device-top">
+          <div class="device-name">{{ d.hostname }}</div>
+        </div>
+        <div class="device-meta">
+          <span class="meta-item">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+            </svg>
+            <span>{{ d.ip }}</span>
+          </span>
+          <span class="meta-item">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/>
+            </svg>
+            <span>{{ d.mac }}</span>
+          </span>
+        </div>
+        <div class="device-actions">
+          <form method="POST" action="/admin/grant" style="display:contents">
+            <input type="hidden" name="mac"      value="{{ d.mac }}"/>
+            <input type="hidden" name="ip"       value="{{ d.ip }}"/>
+            <input type="hidden" name="hostname" value="{{ d.hostname }}"/>
+            <button class="btn btn-grant" type="submit">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              Grant 1 Hour
+            </button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#334155" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      No devices waiting
+    </div>
+    {% endif %}
+
+    <!-- Active -->
+    <div class="section-head">
+      <h2>Active Sessions</h2>
+      <span class="pill green">{{ active|length }}</span>
+    </div>
+    <p class="refresh-hint">Auto-refreshes every 15s</p>
+
+    {% if active %}
+    <div class="device-list">
+      {% for s in active %}
+      <div class="device-card active">
+        <div class="device-top">
+          <div>
+            <div class="device-name">{{ s.hostname or s.ip }}</div>
+            <div class="device-time">Since {{ s.granted_at[:16].replace('T',' ') }}</div>
+          </div>
+          <span class="timer ok" data-expires="{{ s.expires_at }}">--:--:--</span>
+        </div>
+        <div class="device-meta">
+          <span class="meta-item">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+            </svg>
+            <span>{{ s.ip }}</span>
+          </span>
+          <span class="meta-item">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/>
+            </svg>
+            <span>{{ s.mac }}</span>
+          </span>
+        </div>
+        <div class="device-actions">
+          <form method="POST" action="/admin/revoke" style="display:contents">
+            <input type="hidden" name="mac" value="{{ s.mac }}"/>
+            <button class="btn btn-revoke" type="submit">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+              Revoke Access
+            </button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#334155" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+        <circle cx="12" cy="20" r="1"/>
+      </svg>
+      No active sessions
+    </div>
+    {% endif %}
+
+    <div class="promo">
+      Powered by <a href="https://github.com/Gooseymille10" target="_blank" rel="noopener">OpenPisoWifi</a> · Built by Gooseymille
+    </div>
+
+  </div>
+</body>
+</html>
