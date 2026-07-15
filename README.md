@@ -6,7 +6,7 @@
 
 **Open source Piso WiFi captive portal — no ₱10,000 black box required.**
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.x-blue?logo=python)](https://python.org)
 [![Platform](https://img.shields.io/badge/Platform-Raspberry%20Pi%20%7C%20Orange%20Pi-red)](https://www.raspberrypi.com)
 [![GitHub](https://img.shields.io/badge/Built%20by-Gooseymille-black?logo=github)](https://github.com/Gooseymille10)
@@ -243,7 +243,7 @@ PRs welcome! Some ideas for future features:
 
 ## License
 
-MIT — free to use, modify, and distribute.
+GNU General Public License v3.0 — free to use, modify, and distribute, but derivatives must also be open source under the same license.
 
 ---
 
